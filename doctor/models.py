@@ -23,6 +23,19 @@ class Doctor(models.Model):
     def __str__(self):
         return f"Dr. {self.full_name}"
     
+
+class DoctorAvailableSlot(models.Model):
+    doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE)
+    date = models.DateField()
+    start_time = models.TimeField()
+    end_time = models.TimeField()
+    is_booked = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.doctor.full_name} → {self.date} {self.start_time}-{self.end_time}"
+
+
+    
 class Notification(models.Model):
     doctor = models.ForeignKey(Doctor, on_delete=models.SET_NULL, null=True, blank=True)
     appointment = models.ForeignKey("base.Appointment", on_delete=models.CASCADE, null=True, blank=True, related_name="doctor_appointment_notification")
