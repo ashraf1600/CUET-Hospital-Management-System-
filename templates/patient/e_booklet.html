@@ -1,0 +1,346 @@
+{% extends 'partials/base.html' %}
+{% block content %}
+
+<div class="container-fluid">
+    <div class="row mt-0 mt-md-4">
+        <!-- Sidebar -->
+        <div class="col-lg-3 col-md-4 col-12">
+            {% include 'patient/sidebar.html' %}
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-lg-9 col-md-8 col-12">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h4 class="mb-1 fw-bold text-dark">
+                        <i class="fas fa-book-medical text-primary me-2"></i>Medical E-Booklet
+                    </h4>
+                    <p class="text-muted mb-0">Your complete medical history in digital notebook format</p>
+                </div>
+                <div class="text-end">
+                    <span class="badge bg-secondary fs-6">
+                        {{ completed_appointments.count }} Medical Records
+                    </span>
+                </div>
+            </div>
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        <i class="fas fa-{% if message.tags == 'success' %}check-circle{% else %}exclamation-triangle{% endif %} me-2"></i>
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            {% if completed_appointments %}
+                <!-- E-Booklet Notebook -->
+                <div class="card shadow border-0 bg-light">
+                    <div class="card-body p-4">
+                        <!-- Notebook Cover Effect -->
+                        <div class="text-center mb-4 border-bottom pb-3">
+                            <h3 class="text-dark mb-2">MEDICAL RECORD BOOK</h3>
+                            <p class="text-muted mb-0">CUET Hospital Management System</p>
+                        </div>
+
+                        {% for appointment in completed_appointments %}
+                        <!-- Each Appointment as a Page -->
+                        <div class="notebook-page bg-white p-4 mb-4 border rounded shadow-sm">
+                            <!-- Page Header -->
+                            <div class="page-header border-bottom pb-3 mb-4">
+                                <div class="row">
+                                    <div class="col-md-8">
+                                        <h5 class="text-dark mb-2">
+                                            <strong>APPOINTMENT RECORD</strong>
+                                        </h5>
+                                        <table class="table table-borderless table-sm mb-0">
+                                            <tr>
+                                                <td width="30%"><strong>Appointment ID:</strong></td>
+                                                <td>{{ appointment.appointment_id }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Doctor:</strong></td>
+                                                <td>Dr. {{ appointment.doctor.full_name }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Department:</strong></td>
+                                                <td>{{ appointment.service.name }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Date:</strong></td>
+                                                <td>
+                                                    {% if appointment.slot %}
+                                                        {{ appointment.slot.date }} at {{ appointment.slot.start_time }}
+                                                    {% else %}
+                                                        Date not specified
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                    <div class="col-md-4 text-md-end">
+                                        <div class="border p-2 bg-light rounded">
+                                            <small class="text-muted d-block">Status</small>
+                                            <span class="badge bg-success">COMPLETED</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 1. Prescription Section -->
+                            <div class="section mb-4">
+                                <h6 class="section-title bg-light p-2 border-bottom">
+                                    <i class="fas fa-prescription me-2"></i>
+                                    PRESCRIPTION
+                                </h6>
+                                <div class="section-content p-3">
+                                    {% with prescription=appointment.prescription_set.first %}
+                                        {% if prescription and prescription.medications %}
+                                            <div class="prescription-text">
+                                                {{ prescription.medications|linebreaks }}
+                                            </div>
+                                        {% else %}
+                                            <p class="text-muted text-center py-3">
+                                                <i class="fas fa-prescription-bottle fa-2x mb-2"></i><br>
+                                                No prescription provided
+                                            </p>
+                                        {% endif %}
+                                    {% endwith %}
+                                </div>
+                            </div>
+
+                            <!-- 2. Lab Tests Section -->
+                            <div class="section mb-4">
+                                <h6 class="section-title bg-light p-2 border-bottom">
+                                    <i class="fas fa-flask me-2"></i>
+                                    LABORATORY TESTS
+                                </h6>
+                                <div class="section-content p-3">
+                                    {% with lab_tests=appointment.labtest_set.all %}
+                                        {% if lab_tests %}
+                                            {% for lab_test in lab_tests %}
+                                            <div class="lab-test-item mb-3 border-bottom pb-3 {% if not forloop.last %}border-bottom{% endif %}">
+                                                <div class="row">
+                                                    <div class="col-md-4">
+                                                        <strong>Test Name:</strong><br>
+                                                        {{ lab_test.test_name }}
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <strong>Description:</strong><br>
+                                                        {{ lab_test.description|default:"-" }}
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <strong>Result:</strong><br>
+                                                        {% if lab_test.result %}
+                                                            <span class="text-success">{{ lab_test.result }}</span>
+                                                        {% else %}
+                                                            <span class="text-muted">Pending</span>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            {% endfor %}
+                                        {% else %}
+                                            <p class="text-muted text-center py-3">
+                                                <i class="fas fa-vial fa-2x mb-2"></i><br>
+                                                No laboratory tests conducted
+                                            </p>
+                                        {% endif %}
+                                    {% endwith %}
+                                </div>
+                            </div>
+
+                            <!-- 3. Medical Report Section -->
+                            <div class="section mb-4">
+                                <h6 class="section-title bg-light p-2 border-bottom">
+                                    <i class="fas fa-file-medical me-2"></i>
+                                    MEDICAL REPORT
+                                </h6>
+                                <div class="section-content p-3">
+                                    {% with medical_record=appointment.medicalrecord_set.first %}
+                                        {% if medical_record %}
+                                            <div class="row">
+                                                <div class="col-md-6 mb-3">
+                                                    <strong>Diagnosis:</strong>
+                                                    <div class="border p-3 bg-white rounded mt-1">
+                                                        {{ medical_record.diagnosis|linebreaks }}
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6 mb-3">
+                                                    <strong>Treatment Plan:</strong>
+                                                    <div class="border p-3 bg-white rounded mt-1">
+                                                        {{ medical_record.treatment|linebreaks }}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        {% else %}
+                                            <p class="text-muted text-center py-3">
+                                                <i class="fas fa-stethoscope fa-2x mb-2"></i><br>
+                                                No medical report available
+                                            </p>
+                                        {% endif %}
+                                    {% endwith %}
+                                </div>
+                            </div>
+
+                            <!-- Patient Reported Information -->
+                            <div class="section">
+                                <h6 class="section-title bg-light p-2 border-bottom">
+                                    <i class="fas fa-user me-2"></i>
+                                    PATIENT REPORTED INFORMATION
+                                </h6>
+                                <div class="section-content p-3">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <strong>Symptoms:</strong>
+                                            <div class="border p-2 bg-white rounded mt-1 min-h-100">
+                                                {% if appointment.symptoms %}
+                                                    {{ appointment.symptoms|linebreaks }}
+                                                {% else %}
+                                                    <span class="text-muted">No symptoms reported</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <strong>Health Issues:</strong>
+                                            <div class="border p-2 bg-white rounded mt-1 min-h-100">
+                                                {% if appointment.issues %}
+                                                    {{ appointment.issues|linebreaks }}
+                                                {% else %}
+                                                    <span class="text-muted">No issues reported</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Page Footer -->
+                            <div class="page-footer border-top pt-3 mt-4 text-center">
+                                <small class="text-muted">
+                                    Page {{ forloop.counter }} of {{ completed_appointments.count }} • 
+                                    CUET Medical Center • 
+                                    Generated on {% now "F j, Y" %}
+                                </small>
+                            </div>
+                        </div>
+
+                        <!-- Page Separator (Not for last page) -->
+                        {% if not forloop.last %}
+                        <div class="text-center my-3">
+                            <div class="dotted-line"></div>
+                            <small class="bg-light px-3 text-muted">Continue to next record</small>
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="text-center mt-4">
+                    <button onclick="window.print()" class="btn btn-outline-primary">
+                        <i class="fas fa-print me-2"></i>Print E-Booklet
+                    </button>
+                    <a href="{% url 'patient:dashboard' %}" class="btn btn-secondary ms-2">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                    </a>
+                </div>
+
+            {% else %}
+                <!-- Empty State -->
+                <div class="card shadow border-0 text-center py-5">
+                    <div class="card-body">
+                        <i class="fas fa-book-medical fa-4x text-muted mb-4"></i>
+                        <h4 class="text-muted mb-3">Your E-Booklet is Empty</h4>
+                        <p class="text-muted mb-4">
+                            Completed medical appointments will automatically appear here.<br>
+                            This is your digital medical notebook for all prescriptions, lab reports, and medical records.
+                        </p>
+                        <a href="{% url 'base:index' %}" class="btn btn-primary">
+                            <i class="fas fa-calendar-plus me-2"></i>Schedule Your First Appointment
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Notebook Style CSS -->
+<style>
+.notebook-page {
+    background: linear-gradient(90deg, white 99%, #f8f9fa 1%);
+    position: relative;
+}
+
+.notebook-page::before {
+    content: '';
+    position: absolute;
+    left: 30px;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: repeating-linear-gradient(
+        to bottom,
+        transparent,
+        transparent 20px,
+        #e9ecef 20px,
+        #e9ecef 21px
+    );
+}
+
+.section-title {
+    font-weight: 600;
+    color: #2c3e50;
+    border-left: 4px solid #0d6efd;
+}
+
+.section-content {
+    background: #fafafa;
+    border-radius: 0 0 8px 8px;
+}
+
+.page-header {
+    background: #f8f9fa;
+    margin: -1rem -1rem 1rem -1rem;
+    padding: 1rem;
+    border-radius: 8px 8px 0 0;
+}
+
+.dotted-line {
+    border-top: 2px dashed #dee2e6;
+    margin: 20px 0;
+}
+
+.min-h-100 {
+    min-height: 100px;
+}
+
+.lab-test-item:last-child {
+    border-bottom: none !important;
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+/* Print Styles */
+@media print {
+    .navbar, .sidebar, .btn, .alert, .dotted-line {
+        display: none !important;
+    }
+    .notebook-page {
+        break-inside: avoid;
+        margin-bottom: 20px;
+    }
+    .card {
+        border: 1px solid #000 !important;
+        box-shadow: none !important;
+    }
+    .bg-light {
+        background: #f8f9fa !important;
+    }
+}
+</style>
+
+{% endblock %}

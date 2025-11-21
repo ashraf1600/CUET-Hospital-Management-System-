@@ -13,6 +13,10 @@ urlpatterns = [
     path("activate_appointment/<appointment_id>/", views.activate_appointment, name="activate_appointment"),
     path("complete_appointment/<appointment_id>/", views.complete_appointment, name="complete_appointment"),
 
+
+       # New E-Booklet Routes
+    path("e-booklet/", views.e_booklet, name="e_booklet"),
+
     # path("payments/", views.payments, name="payments"),
     path("notifications/", views.notifications, name="notifications"),
     path("mark_noti_seen/<id>/", views.mark_noti_seen, name="mark_noti_seen"),

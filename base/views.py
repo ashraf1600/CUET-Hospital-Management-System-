@@ -26,20 +26,21 @@ def book_appointment(request, service_id, doctor_id):
     doctor = doctor_models.Doctor.objects.get(id=doctor_id)
     patient = patient_models.Patient.objects.get(user=request.user)
 
-    # only available slots
     slots = doctor_models.DoctorAvailableSlot.objects.filter(
         doctor=doctor,
         is_booked=False
     ).order_by("date", "start_time")
 
     if request.method == "POST":
-        # Update patient bio
-        patient.full_name = request.POST.get("full_name")
+        # Update patient information with new fields
+        patient.first_name = request.POST.get("first_name")
+        patient.last_name = request.POST.get("last_name")
         patient.email = request.POST.get("email")
         patient.mobile = request.POST.get("mobile")
         patient.gender = request.POST.get("gender")
         patient.address = request.POST.get("address")
         patient.dob = request.POST.get("dob")
+        patient.blood_group = request.POST.get("blood_group")
         patient.save()
 
         # Get selected slot
@@ -70,7 +71,6 @@ def book_appointment(request, service_id, doctor_id):
 
         return redirect("base:appointment_success", appointment_id=appointment.appointment_id)
 
-
     return render(request, "base/book_appointment.html", {
         "service": service,
         "doctor": doctor,
@@ -78,9 +78,20 @@ def book_appointment(request, service_id, doctor_id):
         "slots": slots
     })
 
-from django.shortcuts import render
 
 def appointment_success(request, appointment_id):
-    return render(request, "base/appointment_success.html", {"appointment_id": appointment_id})
-
+    """Appointment success page after booking"""
+    try:
+        appointment = base_models.Appointment.objects.get(appointment_id=appointment_id)
+        context = {
+            "appointment": appointment,
+            "appointment_id": appointment_id
+        }
+    except base_models.Appointment.DoesNotExist:
+        context = {
+            "appointment": None,
+            "appointment_id": appointment_id
+        }
+    
+    return render(request, "base/appointment_success.html", context)
 

@@ -6,10 +6,18 @@ USER_TYPE = (
     ("Patient", "Patient"),
 )
 
+ACCOUNT_STATUS = (
+    ("Pending", "Pending"),
+    ("Verified", "Verified"),
+    ("Rejected", "Rejected"),
+)
+
 class User(AbstractUser):
     email = models.EmailField(unique=True)
     username = models.CharField(max_length=100, null=True, blank=True)
     user_type = models.CharField(max_length=50, choices=USER_TYPE, null=True, blank=True, default=None)
+    account_status = models.CharField(max_length=50, choices=ACCOUNT_STATUS, default="Pending")
+    rejection_reason = models.TextField(null=True, blank=True)
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ['username']

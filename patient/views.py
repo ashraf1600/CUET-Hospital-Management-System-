@@ -131,24 +131,24 @@ def mark_noti_seen(request, id):
 @login_required
 def profile(request):
     patient = patient_models.Patient.objects.get(user=request.user)
-    formatted_dob = patient.dob.strftime('%Y-%m-%d')
+    formatted_dob = patient.dob.strftime('%Y-%m-%d') if patient.dob else ''
     
     if request.method == "POST":
-        full_name = request.POST.get("full_name")
+        # Student Information
+        patient.first_name = request.POST.get("first_name")
+        patient.last_name = request.POST.get("last_name")
+        patient.hall = request.POST.get("hall")
+        patient.room_no = request.POST.get("room_no")
+        
+        # Personal Information
+        patient.mobile = request.POST.get("mobile")
+        patient.address = request.POST.get("address")
+        patient.gender = request.POST.get("gender")
+        patient.dob = request.POST.get("dob")
+        patient.blood_group = request.POST.get("blood_group")
+
+        # Profile Image
         image = request.FILES.get("image")
-        mobile = request.POST.get("mobile")
-        address = request.POST.get("address")
-        gender = request.POST.get("gender")
-        dob = request.POST.get("dob")
-        blood_group = request.POST.get("blood_group")
-
-        patient.full_name = full_name
-        patient.mobile = mobile
-        patient.address = address
-        patient.gender = gender
-        patient.dob = dob
-        patient.blood_group = blood_group
-
         if image != None:
             patient.image = image
 
@@ -160,5 +160,21 @@ def profile(request):
         "patient": patient,
         "formatted_dob": formatted_dob,
     }
-
     return render(request, "patient/profile.html", context)
+
+@login_required
+def e_booklet(request):
+    """E-Booklet - All completed appointment records in one place"""
+    patient = patient_models.Patient.objects.get(user=request.user)
+    
+    # শুধু completed appointments নিবে
+    completed_appointments = base_models.Appointment.objects.filter(
+        patient=patient, 
+        status="Completed"
+    ).order_by("-id")
+    
+    context = {
+        "completed_appointments": completed_appointments,
+        "patient": patient,
+    }
+    return render(request, "patient/e_booklet.html", context)
