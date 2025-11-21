@@ -12,12 +12,12 @@ def dashboard(request):
     patient = patient_models.Patient.objects.get(user=request.user)
     appointments = base_models.Appointment.objects.filter(patient=patient)
     notifications = patient_models.Notification.objects.filter(patient=patient, seen=False)
-    # total_spent = base_models.Billing.objects.filter(patient=patient).aggregate(total_spent = models.Sum("total"))['total_spent']
+    total_spent = base_models.Billing.objects.filter(patient=patient).aggregate(total_spent = models.Sum("total"))['total_spent']
     
     context = {
         'appointments': appointments,
         'notifications': notifications,
-        # 'total_spent': total_spent,
+        'total_spent': total_spent,
     }
 
     return render(request, "patient/dashboard.html", context)
